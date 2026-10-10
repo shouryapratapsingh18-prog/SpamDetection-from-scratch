@@ -33,10 +33,6 @@ if st.button("Check Message"):
     else:
         # Predict the message
         prediction = model.predict([message])[0]
-        probabilities = model.predict_proba([message])[0]
-        
-        class_index = list(model.classes_).index(prediction)
-        confidence = probabilities[class_index]
         
         # Display Results
         st.markdown("---")
@@ -46,8 +42,6 @@ if st.button("Check Message"):
             st.error(f"**Prediction:** {prediction.upper()} 🚨")
         else:
             st.success(f"**Prediction:** {prediction.upper()} ✅")
-            
-        st.write(f"**Model Confidence:** {confidence:.2%}")
 
 st.markdown("---")
 st.caption("Educational machine learning project. Predictions may be incorrect.")
