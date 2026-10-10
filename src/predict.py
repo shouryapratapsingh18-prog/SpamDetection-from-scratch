@@ -1,35 +1,34 @@
 
 import joblib
 
-# Load the saved pipeline
+# Load the saved Linear SVM pipeline
 model = joblib.load("models/spam_detector.joblib")
 
 # Messages to test
 messages = [
-    "Congratulations! You have won a free prize. Claim now!",
-    "Hi, are we meeting for lunch today?",
-    "URGENT! You have won money. Click here now!",
-    "Please send me the assignment before class."
+    "Congratulations! You have won a free prize. Click here now!",
+    "URGENT! Claim your cash reward now!",
+    "You have won 10000000000000 dollars. Claim now!",
+    "FREE entry in our prize draw. Reply now!",
+    "Hey, are we meeting for lunch today?",
+    "Please send me the assignment notes.",
+    "Can we meet tomorrow at 10 AM?",
+    "Your electricity bill is due tomorrow."
 ]
-
-# Predict labels
+# Predict spam or ham
 predictions = model.predict(messages)
 
-# Get estimated probabilities for each class
-probabilities = model.predict_proba(messages)
+# Get SVM decision scores
+scores = model.decision_function(messages)
 
-# Get the class names in the model's actual order
-classes = model.classes_
+print("\n--- SPAM DETECTION RESULTS ---")
 
-for message, prediction, probability in zip(
-    messages, predictions, probabilities
-):
-    print("\nMessage:", message)
-    print("Prediction:", prediction.upper())
+for message, prediction, score in zip(messages, predictions, scores):
+    print(f"\nMessage: {message}")
+    print(f"Prediction: {prediction.upper()}")
+    print(f"SVM decision score: {score:.4f}")
 
-    # Display the probability of each class
-    for class_name, score in zip(classes, probability):
-        print(f"{class_name.upper()} probability: {score:.2%}")
-
-    # Highest class probability (not a guarantee of correctness)
-    print(f"Model confidence: {max(probability):.2%}")
+    if prediction == "spam":
+        print("Result: This message is classified as spam.")
+    else:
+        print("Result: This message is classified as legitimate (ham).")

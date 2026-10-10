@@ -2,62 +2,54 @@
 import streamlit as st
 import joblib
 
-# Configure the browser page
+# Load the trained Linear SVM pipeline
+model = joblib.load("models/spam_detector.joblib")
+
+# Page configuration
 st.set_page_config(
-    page_title="Spam Detection System",
+    page_title="Spam Detection AI",
     page_icon="📧",
     layout="centered"
 )
 
-# Load the saved machine learning pipeline
-@st.cache_resource
-def load_model():
-    return joblib.load("models/spam_detector.joblib")
-
-model = load_model()
-
-# Page heading
-st.title("📧 Spam Detection System")
+# App heading
+st.title("📧 Spam Detection AI")
 st.write(
-    "Enter an email or message below to check whether "
-    "it is likely to be spam or legitimate."
+    "Enter an email or message below to check "
+    "whether it is spam or legitimate."
 )
 
 # Message input
 message = st.text_area(
-    "Enter your message",
-    placeholder="Example: Congratulations! Claim your prize now...",
+    "Enter your message:",
+    placeholder="Paste your email or message here...",
     height=180
 )
 
-# Prediction button
+# Predict button
 if st.button("Check Message", type="primary"):
     if not message.strip():
         st.warning("Please enter a message first.")
     else:
         prediction = model.predict([message])[0]
-        probabilities = model.predict_proba([message])[0]
+        score = model.decision_function([message])[0]
 
-        # Get probability for the predicted class
-        class_index = list(model.classes_).index(prediction)
-        confidence = probabilities[class_index]
-
-        st.subheader("Prediction Result")
+        st.subheader("Analysis Result")
 
         if prediction == "spam":
-            st.error("🚨 This message is classified as SPAM")
+            st.error("🚨 SPAM DETECTED")
+            st.write("The model classifies this message as spam.")
         else:
-            st.success("✅ This message is classified as HAM")
+            st.success("✅ LEGITIMATE MESSAGE (HAM)")
+            st.write("The model classifies this message as legitimate.")
 
-        st.metric(
-            "Model confidence",
-            f"{confidence:.2%}"
-        )
+        st.metric("SVM Decision Score", f"{score:.4f}")
 
         st.caption(
-            "Confidence is a model-estimated probability, "
-            "not a guarantee of correctness."
+            "The decision score is not a probability or confidence "
+            "percentage. Scores on opposite sides of the decision "
+            "boundary correspond to different predicted classes."
         )
 
 st.divider()
-st.caption("Educational machine learning project • TF-IDF + Naive Bayes")
+st.caption("Educational machine learning project. Predictions may be incorrect.")
