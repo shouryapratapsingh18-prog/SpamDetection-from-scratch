@@ -1,36 +1,53 @@
-
+import os
+import streamlit as st
 import joblib
 
-# Load the trained model
-model = joblib.load("models/spam_detector.joblib")
+# Page configuration
+st.set_page_config(page_title="Spam Detection AI", page_icon="✉️", layout="centered")
 
-print("=" * 45)
-print("       SPAM DETECTION SYSTEM")
-print("=" * 45)
-print("Enter an email or message to classify.")
-print("Type 'exit' to quit.")
+# Build the correct path to the model file
+current_dir = os.path.dirname(os.path.abspath(__file__))
+model_path = os.path.join(current_dir, "../models/spam_detector.joblib")
 
-while True:
-    message = input("\nEnter your message: ").strip()
+# Load the trained model with caching for better performance
+@st.cache_resource
+def load_model():
+    return joblib.load(model_path)
 
-    # Stop the program when requested
-    if message.lower() == "exit":
-        print("Exiting Spam Detection System. Goodbye!")
-        break
+try:
+    model = load_model()
+except Exception as e:
+    st.error(f"Error loading model: {e}")
+    st.stop()
 
-    # Handle empty input
-    if not message:
-        print("Please enter a non-empty message.")
-        continue
+# App UI Header
+st.title("✉️ Spam Detection AI")
+st.write("An NLP project using TF-IDF and Linear Support Vector Machine.")
 
-    # Predict the message
-    prediction = model.predict([message])[0]
-    probabilities = model.predict_proba([message])[0]
+st.markdown("### Check a Message")
+message = st.text_area("Enter an email or message:", placeholder="Paste your message here...")
 
-    # Find the probability for the predicted class
-    class_index = list(model.classes_).index(prediction)
-    confidence = probabilities[class_index]
+if st.button("Check Message"):
+    if not message.strip():
+        st.warning("Please enter a non-empty message.")
+    else:
+        # Predict the message
+        prediction = model.predict([message])[0]
+        probabilities = model.predict_proba([message])[0]
+        
+        class_index = list(model.classes_).index(prediction)
+        confidence = probabilities[class_index]
+        
+        # Display Results
+        st.markdown("---")
+        st.markdown("### Result")
+        
+        if prediction.lower() == "spam":
+            st.error(f"**Prediction:** {prediction.upper()} 🚨")
+        else:
+            st.success(f"**Prediction:** {prediction.upper()} ✅")
+            
+        st.write(f"**Model Confidence:** {confidence:.2%}")
 
-    print("\n--- RESULT ---")
-    print("Prediction:", prediction.upper())
-    print(f"Model confidence: {confidence:.2%}")
+st.markdown("---")
+st.caption("Educational machine learning project. Predictions may be incorrect.")
